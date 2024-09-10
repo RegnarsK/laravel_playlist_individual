@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Song;
+use App\Models\Playlist;
 use Illuminate\Http\Request;
 
 class SongController extends Controller
@@ -10,7 +12,7 @@ class SongController extends Controller
     public function index()
     {
         $playlists = Playlist::all();
-        return view('playlist.index', compact('playlists'));
+        return view('songs.create', compact('playlists'));
     }
 
     /**
@@ -18,7 +20,8 @@ class SongController extends Controller
      */
     public function create()
     {
-       return view('playlist.create');
+        $playlists = Playlist::all();
+        return view('songs.create', compact('playlists'));
     }
 
     /**
@@ -29,16 +32,18 @@ class SongController extends Controller
         $request->validate([
             'title' => 'required',
             'artist' => 'required',
-            'genre' => 'required'
+            'genre' => 'required',
+            'playlist_id' => 'required|exists:playlists,id'
         ]);
 
         Song::create([
             'title' => $request->input('title'),
             'artist' => $request->input('artist'),
-            'genre' => $request->input('genre')
+            'genre' => $request->input('genre'),
+            'playlist_id' => $request->input('playlist_id')
         ]);
 
-        return redirect('/playlist'); //--------------Šo vajadzēs samainīt!!!!!!
+        return redirect()->route('playlist.show', $request->input('playlist_id'));
     }
 
     /**
@@ -46,7 +51,10 @@ class SongController extends Controller
      */
     public function show($id)
     {
-       return view('playlist.show');
+        $song = Song::findOrFail($id);
+        $playlist = $song->playlist; // Assuming a 'playlist' relationship is defined on the Song model
+        
+        return view('songs.show', compact('song', 'playlist'));
     }
 
     /**
@@ -54,7 +62,10 @@ class SongController extends Controller
      */
     public function edit($id)
     {
-        
+        $song = Song::findOrFail($id);
+        $playlists = Playlist::all(); // Retrieve all playlists for the dropdown or selection
+
+        return view('songs.edit', compact('song', 'playlists'));
     }
 
     /**
@@ -62,23 +73,30 @@ class SongController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Validate the request
         $request->validate([
             'title' => 'required',
             'artist' => 'required',
-            'genre' => 'required'
+            'genre' => 'required',
+            'playlist_id' => 'required|exists:playlists,id'
         ]);
-
-        
+    
+        // Fetch the song from the database
+        $song = Song::findOrFail($id);
+    
+        // Check if the user has the right to update this song (optional, based on your logic)
         if ($request->user()->id == auth()->user()->id) {
-            Song::where('id', $id)
-                ->update([
-                    'title' => $request->input('title'),
-                    'artist' => $request->input('artist'),
-                    'genre' => $request->input('genre')
-        ]);
-    }
-
-    return redirect('/playlist'); //--------------Šo vajadzēs samainīt!!!!!!
+            // Update the song
+            $song->update([
+                'title' => $request->input('title'),
+                'artist' => $request->input('artist'),
+                'genre' => $request->input('genre'),
+                'playlist_id' => $request->input('playlist_id')
+            ]);
+        }
+    
+        // Redirect to the playlist show page
+        return redirect()->route('playlist.show', $song->playlist_id)->with('success', 'Song updated successfully!');
     }
 
     /**
@@ -90,6 +108,6 @@ class SongController extends Controller
 
         $song->delete();
 
-        return redirect('/playlist'); //--------------Šo vajadzēs samainīt!!!!!!
+        return redirect('/playlist')->with('success', 'Song deleted successfully!');
     }
 }

@@ -87,24 +87,29 @@
             <div class="px-6 pt-4 pb-2">
                 <table class="w-full table-auto">
                     <tbody>
+                    @foreach($playlist->songs as $song)
                         <tr>
-                            <td class="border px-4 py-2">Song 1</td>
+                            <td>{{ $song->title }}</td>
+                            <td>{{ $song->artist }}</td>
+                        
+                            <td>{{ $song->genre }}</td>
+                            <td>
+                                <a href="{{ route('songs.show', $song->id) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
+                                    View
+                                </a>
+                                <a href="{{ route('songs.edit', $song->id) }}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded">
+                                    Edit
+                                </a>
+                                <form action="{{ route('songs.destroy', $song->id) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Song 2</td>
-                        </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Song 3</td>
-                        </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Song 4</td>
-                        </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Song 5</td>
-                        </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Song 6</td>
-                        </tr>
+                    @endforeach
                     </tbody>
                 </table>
             </div>

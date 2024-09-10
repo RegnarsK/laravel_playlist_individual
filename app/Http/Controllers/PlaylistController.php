@@ -45,9 +45,12 @@ class PlaylistController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Playlist $playlist)
+    public function show($id)
     {
-        return view('playlist.show', ['playlist' => $playlist]);
+        $playlist = Playlist::with('songs')->findOrFail($id);
+
+        // Pass the playlist to the view
+        return view('playlist.show', compact('playlist'));
     }
 
     /**
